@@ -43,7 +43,7 @@ module ALU(
             4'b1011: ALU_Out = (Operand2 >> Operand1[2:0]) | (Operand2 << (8 - Operand1[2:0]));
             4'b1100: ALU_Out = Operand2 << Operand1[2:0];
             4'b1101: ALU_Out = Operand2 >> Operand1[2:0];
-            4'b1110: ALU_Out = Operand2 >> Operand1[2:0];
+            4'b1110: ALU_Out = Operand2 >>> Operand1[2:0];
 
             4'b1111: begin
                 ALU_Out = 8'h0 - Operand2;
