@@ -8,7 +8,7 @@ module ALU(
 
     output [3:0] flags,     //Flag values to be output to the Status Register
     output [7:0] Out,        //The output of the ALU computation, connected to DMem.DI
-    output [15:0] reals
+    //output [15:0] reals
 );
 
     wire Z,S,O;
