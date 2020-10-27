@@ -1,4 +1,5 @@
 //Increments the program counter by 1
+//Fully combinational
 
 module PC_adder(
     input [7:0] PC_In,      //connected to the PC
