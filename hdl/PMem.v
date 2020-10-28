@@ -11,7 +11,7 @@ module PMem(
     reg [11:0] program_memory [255:0];
 
     always @(posedge clk)   begin
-        if(LoadE == 1) begin
+        if(E == 1 && LoadE == 1) begin
             program_memory[LoadAddr] <= LoadInstruction;
         end
     end
