@@ -60,25 +60,25 @@ module Control_Unit(
         else if(stage == EXECUTE) begin
             //If operands are accumulator and value given in instruction
             if(IR[11] == 1) begin
-                PC_E = 1;
+                PC_E = 1;//to updaten for next cycle
                 Acc_E = 1;
                 SR_E = 1;
                 ALU_E = 1;
                 ALU_Mode = IR[10:8]; //MSB will be padded with 0
-                MUX1_Sel = 1;
-                MUX2_Sel = 0;
+                MUX1_Sel = 1;//to update for next cycle
+                MUX2_Sel = 1;//choose IR[7:0]?
             end
 
             //jmp instructions
             else if(IR[10] == 1) begin
                 PC_E = 1;
-                MUX1_Sel = SR[IR[9:8]];
+                MUX1_Sel = SR[IR[9:8]];//SR[3] == Z | (IR[9:8] == 11)
             end
 
             //Operands are 1 from accumulator and other from Memory (bit 8 determined write to same memeory or accumulator)
             else if(IR[9] == 1) begin
                 PC_E = 1;
-                Acc_E = IR[8];
+                Acc_E = IR[8]; //to write to Acc or not
                 SR_E = 1;
                 ALU_E = 1;
                 DMem_WE = !IR[8];
@@ -86,16 +86,16 @@ module Control_Unit(
                 ALU_Mode = IR[7:4];
             end
 
-            //NOP
+            //NOP -- simply connect PC to Adder
             else if(IR[8] == 0) begin
                 PC_E = 1;
-                MUX1_Sel = 1;
+                MUX1_Sel = 0;
             end
 
-            //0001 -- simply connect PC to Adder
+            //0001 
             else begin
                 PC_E = 1;
-                MUX1_Sel = 0;
+                MUX1_Sel = 1;
             end
         end
     end
