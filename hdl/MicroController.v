@@ -25,10 +25,10 @@ module MicroController(
     wire [3:0] ALU_Mode;
 
     //Wires and ports
-    reg [7:0] loadAddr; //For PMem
-    wire [11:0] loadInst; //For PMem
-    wire Adder_Out;
-    wire ALU_Out, ALU_Op2;
+    reg [7:0] loadAddr;
+    wire [11:0] loadInst; 
+    wire [7:0] Adder_Out;
+    wire [7:0] ALU_Out, ALU_Op2;
 
     reg [11:0] temp_program_mem [9:0];
 
@@ -38,7 +38,7 @@ module MicroController(
 
     //LOAD
     initial begin
-        $readmemb("program.bin",temp_program_mem,0,9);
+        $readmemb("/home/prithivi/Projects/priProcessor/mark_I/hdl/program.txt",temp_program_mem,0,9);
     end
 
     ALU ALU_main(
@@ -53,7 +53,7 @@ module MicroController(
 
     MUX MUX2_main(
         .MUX_IN1(IR[7:0]),
-        .MUX_IN1(DR),
+        .MUX_IN2(DR),
         .MUX_Sel(MUX2_Sel),
         .MUX_Out(ALU_Op2)
     );
@@ -84,7 +84,7 @@ module MicroController(
 
     MUX MUX1_main(
         .MUX_IN1(IR[7:0]),
-        .MUX_IN1(Adder_Out),
+        .MUX_IN2(Adder_Out),
         .MUX_Sel(MUX1_Sel),
         .MUX_Out(PC_new)
     );
@@ -112,14 +112,14 @@ module MicroController(
     always @(posedge clk) begin
         if(rst == 1) begin
             //start loading program from top
-            load_addr <= 0;
+            loadAddr <= 0;
             load_done <= 1'b0;
         end
 
         else if(PMem_LE == 1) begin
-            load_addr <= load_addr + 1;
-            if(load_addr == 8'd9) begin //check if 9 instructions have been loaded
-                load_addr <= 8'd0;
+            loadAddr <= loadAddr + 1;
+            if(loadAddr == 8'd9) begin //check if 9 instructions have been loaded
+                loadAddr <= 8'd0;
                 load_done <= 1'b1;
             end 
             else begin
@@ -128,7 +128,7 @@ module MicroController(
         end
     end
 
-    assign loadInst = program_mem[load_addr];
+    assign loadInst = temp_program_mem[loadAddr];
 
     //State determination
     always @(posedge clk) begin
@@ -149,6 +149,7 @@ module MicroController(
 
         case(currentState)
             LOAD: begin
+                $display("LOAD");
                 if(load_done == 1) begin
                     nextState = FETCH;
                     PC_clr = 1;
@@ -164,14 +165,17 @@ module MicroController(
             
             FETCH: begin
                 nextState = DECODE;
+                $display("DECODE");
             end 
 
             DECODE: begin
                 nextState = EXECUTE;
+                $display("EXECUTE");
             end
 
             EXECUTE: begin
                 nextState = FETCH;
+                $display("FETCH");
             end
         endcase
     end

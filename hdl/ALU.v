@@ -3,12 +3,11 @@
 module ALU(
     input E,                //ALU Enable Port - ALU.E
     input [3:0] Mode,       //Mode is set by the Control Unit
-    input [3:0] Cflags,     //Current status of the 4 flags from the Status Register
+    input [3:0] CFlags,     //Current status of the 4 flags from the Status Register
     input [7:0] Operand1, Operand2,
 
     output [3:0] flags,     //Flag values to be output to the Status Register
-    output [7:0] Out,        //The output of the ALU computation, connected to DMem.DI
-    //output [15:0] reals
+    output [7:0] Out        //The output of the ALU computation, connected to DMem.DI
 );
 
     wire Z,S,O;
