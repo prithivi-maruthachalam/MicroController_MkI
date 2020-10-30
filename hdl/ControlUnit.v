@@ -1,4 +1,4 @@
-module Control_Unit(
+module ControlUnit(
     input [1:0] stage,
     input [11:0] IR,
     input [3:0] SR,
