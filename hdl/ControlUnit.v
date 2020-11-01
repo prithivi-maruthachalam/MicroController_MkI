@@ -65,7 +65,7 @@ module ControlUnit(
                 SR_E = 1;
                 ALU_E = 1;
                 ALU_Mode = IR[10:8]; //MSB will be padded with 0
-                MUX1_Sel = 1;//to update for next cycle
+                MUX1_Sel = 0;//to update for next cycle
                 MUX2_Sel = 1;//choose IR[7:0]?
             end
 

@@ -4,11 +4,9 @@ module MicroController(
 );
 
     //processor states(stages)
-    parameter LOAD = 2'b00,
-            FETCH = 2'b01,
-            DECODE = 2'b10,
-            EXECUTE = 2'b11;
+    parameter LOAD = 2'b00,FETCH = 2'b01,DECODE = 2'b10,EXECUTE = 2'b11;
 
+    //for state monitoring and switching
     reg[1:0] currentState, nextState;
     
     //Components
@@ -32,15 +30,18 @@ module MicroController(
 
     reg [11:0] temp_program_mem [9:0];
 
-    //flags
+    //flags & resets
     reg load_done;
-    reg PC_clr,Acc_clr,SR_clr,DR_clr,IR_clr;
+    reg PC_clr,Acc_clr,SR_clr,DR_clr,IR_clr;    //to reset registers to 0 values
 
-    //LOAD
+
+    //LOAD code from file into temporary program memory
     initial begin
-        $readmemb("/home/prithivi/Projects/priProcessor/mark_I/hdl/program.txt",temp_program_mem,0,9);
+        $readmemb("/home/prithivi/Projects/priProcessor/mark_I/program.txt",temp_program_mem,0,9);
     end
 
+
+    //Module instantiation
     ALU ALU_main(
         .Operand1(Acc),
         .Operand2(ALU_Op2),
@@ -108,19 +109,23 @@ module MicroController(
         .MUX2_Sel(MUX2_Sel)
     );
 
+/*-------------------------------LOGIC DESCRIPTION----------------------------------------------*/
+
     //LOAD logic
     always @(posedge clk) begin
         if(rst == 1) begin
-            //start loading program from top
+            //set load address to top of program memory
             loadAddr <= 0;
-            load_done <= 1'b0;
+            load_done <= 1'b0; 
         end
 
         else if(PMem_LE == 1) begin
+            //move to next load address
             loadAddr <= loadAddr + 1;
-            if(loadAddr == 8'd9) begin //check if 9 instructions have been loaded
+            if(loadAddr == 8'd9) begin //check if 9 instructions have been //TODO: Change to n instructions
                 loadAddr <= 8'd0;
                 load_done <= 1'b1;
+                $display("LOAD Complete");
             end 
             else begin
                 load_done <= 1'b0;
@@ -128,9 +133,13 @@ module MicroController(
         end
     end
 
+    //assign value to current instruction to be loaded
     assign loadInst = temp_program_mem[loadAddr];
 
     //State determination
+    /*
+        Move to the required state at every positive edge of clock 
+    */
     always @(posedge clk) begin
         if(rst == 1) begin
             currentState <= LOAD;
@@ -140,6 +149,10 @@ module MicroController(
         end
     end
 
+    //Stages and stage transition
+    /*
+        Determine nextState to switch to during positive edge of clock
+    */
     always @(*) begin
         PC_clr = 0;
         Acc_clr = 0;
@@ -149,7 +162,7 @@ module MicroController(
 
         case(currentState)
             LOAD: begin
-                $display("LOAD");
+                //Check if LOADing is complete
                 if(load_done == 1) begin
                     nextState = FETCH;
                     PC_clr = 1;
@@ -157,6 +170,7 @@ module MicroController(
                     SR_clr = 1;
                     DR_clr = 1;
                     IR_clr = 1;
+                    $display("Setting transition to fetch state\n");
                 end
                 else begin
                     nextState = LOAD;
@@ -165,22 +179,23 @@ module MicroController(
             
             FETCH: begin
                 nextState = DECODE;
-                $display("DECODE");
             end 
 
             DECODE: begin
                 nextState = EXECUTE;
-                $display("EXECUTE");
             end
 
             EXECUTE: begin
                 nextState = FETCH;
-                $display("FETCH");
             end
         endcase
     end
 
-    //visible register logic
+    //visible register logic (PC, Acc, SR)
+    /*
+        - Clear(zero) when reset or during LOAD stage(clr flags)
+        - Update to required value at positive edge of clock if enabled
+    */
     always @(posedge clk) begin
         if(rst == 1) begin
             PC <= 8'd0;
@@ -205,7 +220,12 @@ module MicroController(
         end
     end
 
-    //Invisible Register logic
+    //Invisible Register logic (DR, IR)
+    /*
+        - Clear at reset not required - value determined by address lines to PMem & DMem
+        - Clear(zero) during LOAD stage(clr flags)
+        - Update to required value at positive edge of clock if enabled
+    */
     always @(posedge clk) begin
         if(DR_E == 1'd1)
             DR <= DR_new;
@@ -216,5 +236,20 @@ module MicroController(
             IR <= IR_new;
         else if(IR_clr == 1)
             IR <= 12'd0;    
+    end
+
+    //For debugging
+    always @(posedge clk) begin
+        case(currentState)
+            2'b00:$strobe("TIME:%0t\t::\tCurrent State: LOAD",$time);
+            2'b01:$strobe("TIME:%0t\t::\tCurrent State: FETCH",$time);
+            2'b10:$strobe("TIME:%0t\t::\tCurrent State: DECODE",$time);
+            2'b11:$strobe("TIME:%0t\t::\tCurrent State: EXECUTE",$time);
+        endcase
+        $strobe("TIME:%0t\t::\tPC: %b (%d)\tPC_E:%b",$time,PC,PC,PC_E);
+        $strobe("TIME:%0t\t::\tIR: %b (%d)\tIR_E:%b",$time,IR,IR,IR_E);
+        $strobe("TIME:%0t\t::\tDR: %b (%d)\tDR_E:%b",$time,DR,DR,DR_E);
+        $strobe("TIME:%0t\t::\tAcc: %b (%d)\tAcc_E:%b",$time,Acc,Acc,Acc_E);
+        $strobe();
     end 
 endmodule
