@@ -3,11 +3,12 @@
 module ALU(
     input E,                //ALU Enable Port - ALU.E
     input [3:0] Mode,       //Mode is set by the Control Unit
-    input [3:0] CFlags,     //Current status of the 4 flags from the Status Register
+    //input [3:0] CFlags,     //Current status of the 4 flags from the Status Register
     input [7:0] Operand1, Operand2,
 
     output [3:0] flags,     //Flag values to be output to the Status Register
-    output [7:0] Out        //The output of the ALU computation, connected to DMem.DI
+    output [7:0] Out,        //The output of the ALU computation, connected to DMem.DI
+    output [7:0] rA, rB
 );
 
     wire Z,S,O;
@@ -67,7 +68,9 @@ module ALU(
     end
 
     //assign O = ALU_Out[7] ^ ALU_Out[6];
-    assign O = (!real_Op1[7] & !real_Op2[7] & !CarryOut & ALU_Out[7]) | (real_Op2[7] & real_Op2[7] & CarryOut & !ALU_Out[7]);
+    assign rA = real_Op1;
+    assign rB = real_Op2;
+    assign O = (!real_Op1[7] & !real_Op2[7] & !CarryOut & ALU_Out[7]) | (real_Op1[7] & real_Op2[7] & CarryOut & !ALU_Out[7]);
     assign Z = (ALU_Out == 0)? 1'b1 : 1'b0;
     assign S = ALU_Out[7];
     assign flags = {Z, CarryOut, S, O};
