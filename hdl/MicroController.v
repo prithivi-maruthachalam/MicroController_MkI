@@ -246,10 +246,11 @@ module MicroController(
             2'b10:$strobe("TIME:%0t\t::\tCurrent State: DECODE",$time);
             2'b11:$strobe("TIME:%0t\t::\tCurrent State: EXECUTE",$time);
         endcase
+        $strobe("TIME:%0t\t::\tZ(SR[3]):%b\tC(SR[2]):%b\tS(SR[1]):%d\tO(SR[0]):%d\t",$time,SR[3],SR[2],SR[1],SR[0]);
         $strobe("TIME:%0t\t::\tPC: %b (%d)\tPC_E:%b",$time,PC,PC,PC_E);
         $strobe("TIME:%0t\t::\tIR: %b (%d)\tIR_E:%b",$time,IR,IR,IR_E);
-        $strobe("TIME:%0t\t::\tDR: %b (%d)\tDR_E:%b",$time,DR,DR,DR_E);
-        $strobe("TIME:%0t\t::\tAcc: %b (%d)\tAcc_E:%b",$time,Acc,Acc,Acc_E);
+        $strobe("TIME:%0t\t::\tDR: %b (%d)\tDR_E:%b\t[%h]",$time,DR,DR,DR_E,DR);
+        $strobe("TIME:%0t\t::\tAcc: %b (%d)\tAcc_E:%b\t[%h]",$time,Acc,Acc,Acc_E,Acc);
         $strobe();
     end 
 endmodule
