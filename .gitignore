@@ -1,3 +1,5 @@
 objs/
 tests/
 *.vcd
+*.p
+assemble
