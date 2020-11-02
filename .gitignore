@@ -2,4 +2,5 @@ objs/
 tests/
 *.vcd
 *.p
+*.out
 assemble

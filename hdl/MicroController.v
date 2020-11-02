@@ -37,7 +37,7 @@ module MicroController(
 
     //LOAD code from file into temporary program memory
     initial begin
-        $readmemb("/home/prithivi/Projects/priProcessor/mark_I/program.txt",temp_program_mem,0,9);
+        $readmemb("/home/prithivi/Projects/priProcessor/mark_I/bitcode.out",temp_program_mem,0,9);
     end
 
 
