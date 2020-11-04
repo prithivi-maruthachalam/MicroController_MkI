@@ -1,3 +1,8 @@
+//TODO: 2 sepatate w/wout stuff
+//TODO: Printing cleanup
+//TODO: HALT?
+
+
 module MicroController(
     input clk,
     input rst
@@ -13,12 +18,14 @@ module MicroController(
     reg [7:0] PC, Acc, DR;
     reg [11:0] IR;
     reg [3:0] SR;
+    reg [7:0] PR;
     wire [3:0] SR_new;
     wire [7:0] DR_new, PC_new;
     wire [11:0] IR_new;
+    wire [7:0] PR_new;
 
     //Control Signals
-    wire PC_E, Acc_E, DR_E, IR_E, SR_E;
+    wire PC_E, Acc_E, DR_E, IR_E, SR_E, PR_E;
     wire PMem_E, DMem_E, PMem_LE, DMem_WE, ALU_E, MUX1_Sel, MUX2_Sel;
     wire [3:0] ALU_Mode;
 
@@ -34,6 +41,7 @@ module MicroController(
     reg load_done;
     reg PC_clr,Acc_clr,SR_clr,DR_clr,IR_clr;    //to reset registers to 0 values
 
+    
 
     //LOAD code from file into temporary program memory
     initial begin
@@ -65,7 +73,9 @@ module MicroController(
         .WE(DMem_WE),
         .Addr(IR[3:0]),
         .DataIn(ALU_Out),
-        .DataOut(DR_new)
+        .DataOut(DR_new),
+        .PrintOut(PR_new),
+        .Print_E(PR_E)
     );
 
     PMem PMem_main(
@@ -106,7 +116,8 @@ module MicroController(
         .DMem_WE(DMem_WE),
         .ALU_E(ALU_E),
         .MUX1_Sel(MUX1_Sel),
-        .MUX2_Sel(MUX2_Sel)
+        .MUX2_Sel(MUX2_Sel),
+        .PR_E(PR_E)
     );
 
 /*-------------------------------LOGIC DESCRIPTION----------------------------------------------*/
@@ -236,6 +247,8 @@ module MicroController(
             IR <= IR_new;
         else if(IR_clr == 1)
             IR <= 12'd0;    
+
+        PR <= PR_new;
     end
 
     //For debugging
@@ -246,10 +259,11 @@ module MicroController(
             2'b10:$strobe("TIME:%0t\t::\tCurrent State: DECODE",$time);
             2'b11:$strobe("TIME:%0t\t::\tCurrent State: EXECUTE",$time);
         endcase
-        $strobe("TIME:%0t\t::\tZ(SR[3]):%b\tC(SR[2]):%b\tS(SR[1]):%d\tO(SR[0]):%d\t",$time,SR[3],SR[2],SR[1],SR[0]);
+        //$strobe("TIME:%0t\t::\tZ(SR[3]):%b\tC(SR[2]):%b\tS(SR[1]):%d\tO(SR[0]):%d\t",$time,SR[3],SR[2],SR[1],SR[0]);
         $strobe("TIME:%0t\t::\tPC: %b (%d)\tPC_E:%b",$time,PC,PC,PC_E);
         $strobe("TIME:%0t\t::\tIR: %b (%d)\tIR_E:%b",$time,IR,IR,IR_E);
         $strobe("TIME:%0t\t::\tDR: %b (%d)\tDR_E:%b\t[%h]",$time,DR,DR,DR_E,DR);
+        $strobe("TIME:%0t\t::\tDMem_print: %b (%d)\tPR_E:%b\t[%h]",$time,PR,PR,PR_E,PR);
         $strobe("TIME:%0t\t::\tAcc: %b (%d)\tAcc_E:%b\t[%h]",$time,Acc,Acc,Acc_E,Acc);
         $strobe();
     end 

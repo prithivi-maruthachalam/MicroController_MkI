@@ -14,7 +14,7 @@ module MCU_tb;
         rst = 1;
         #100;
         rst = 0;
-        #1300;
+        #1200;
         $finish;
     end
 

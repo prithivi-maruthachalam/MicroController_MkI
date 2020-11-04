@@ -4,7 +4,7 @@ module ControlUnit(
     input [3:0] SR,
 
     output reg [3:0] ALU_Mode,
-    output reg PC_E, Acc_E, SR_E, IR_E, DR_E, PMem_E, PMem_LE, DMem_E, DMem_WE, ALU_E, MUX1_Sel, MUX2_Sel 
+    output reg PC_E, Acc_E, SR_E, IR_E, DR_E, PMem_E, PMem_LE, DMem_E, DMem_WE, ALU_E, MUX1_Sel, MUX2_Sel, PR_E 
 );
 
     //processor states(stages)
@@ -28,6 +28,7 @@ module ControlUnit(
         ALU_Mode = 4'd0;
         MUX1_Sel = 0;
         MUX2_Sel = 0;
+        PR_E = 0;
 
         //LOAD stage - should be here once processor turns on
         if(stage == LOAD) begin
@@ -66,7 +67,7 @@ module ControlUnit(
                 ALU_E = 1;
                 ALU_Mode = IR[10:8]; //MSB will be padded with 0
                 MUX1_Sel = 0;//to update for next cycle
-                MUX2_Sel = 1;//choose IR[7:0]?
+                MUX2_Sel = 1;//choose IR[7:0]
             end
 
             //jmp instructions
@@ -86,16 +87,22 @@ module ControlUnit(
                 ALU_Mode = IR[7:4];
             end
 
-            //NOP -- simply connect PC to Adder
-            else if(IR[8] == 0) begin
-                PC_E = 1;
-                MUX1_Sel = 0;
-            end
-
-            //0001 
-            else begin
+            //0001
+            else if(IR[8] == 1) begin
                 PC_E = 1;
                 MUX1_Sel = 1;
+            end
+
+            else if(IR[7:4] == 4'b1111) begin
+                PC_E = 1; //increment program counter
+                PR_E = 1; //enable the print line
+                MUX1_Sel = 0; //update for next cycle
+            end
+
+            //0000 NOP 
+            else begin
+                PC_E = 1;
+                MUX1_Sel = 0;
             end
         end
     end
