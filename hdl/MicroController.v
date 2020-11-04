@@ -1,8 +1,3 @@
-//TODO: 2 sepatate w/wout stuff
-//TODO: Printing cleanup
-//TODO: HALT?
-
-
 module MicroController(
     input clk,
     input rst
@@ -35,7 +30,7 @@ module MicroController(
     wire [7:0] Adder_Out;
     wire [7:0] ALU_Out, ALU_Op2;
 
-    reg [11:0] temp_program_mem [9:0];
+    reg [11:0] temp_program_mem [17:0];
 
     //flags & resets
     reg load_done;
@@ -45,7 +40,7 @@ module MicroController(
 
     //LOAD code from file into temporary program memory
     initial begin
-        $readmemb("/home/prithivi/Projects/priProcessor/mark_I/bitcode.out",temp_program_mem,0,9);
+        $readmemb("/home/prithivi/Projects/priProcessor/mark_I/bitcode.out",temp_program_mem,0,17);
     end
 
 
@@ -133,10 +128,9 @@ module MicroController(
         else if(PMem_LE == 1) begin
             //move to next load address
             loadAddr <= loadAddr + 1;
-            if(loadAddr == 8'd9) begin //check if 9 instructions have been //TODO: Change to n instructions
+            if(loadAddr == 8'd17) begin //check if 9 instructions have been //TODO: Change to n instructions
                 loadAddr <= 8'd0;
                 load_done <= 1'b1;
-                $display("LOAD Complete");
             end 
             else begin
                 load_done <= 1'b0;
@@ -181,7 +175,6 @@ module MicroController(
                     SR_clr = 1;
                     DR_clr = 1;
                     IR_clr = 1;
-                    $display("Setting transition to fetch state\n");
                 end
                 else begin
                     nextState = LOAD;
@@ -254,17 +247,23 @@ module MicroController(
     //For debugging
     always @(posedge clk) begin
         case(currentState)
-            2'b00:$strobe("TIME:%0t\t::\tCurrent State: LOAD",$time);
-            2'b01:$strobe("TIME:%0t\t::\tCurrent State: FETCH",$time);
-            2'b10:$strobe("TIME:%0t\t::\tCurrent State: DECODE",$time);
-            2'b11:$strobe("TIME:%0t\t::\tCurrent State: EXECUTE",$time);
+            2'b00:$strobe("TIME:%0t  LOADING code into prgram memory",$time);
+            2'b01:$strobe("\nTIME:%0t\tStage: FETCH",$time);
+            2'b10:$strobe("\nTIME:%0t\tStage: DECODE",$time);
+            2'b11:$strobe("\nTIME:%0t\tStage: EXECUTE",$time);
         endcase
-        //$strobe("TIME:%0t\t::\tZ(SR[3]):%b\tC(SR[2]):%b\tS(SR[1]):%d\tO(SR[0]):%d\t",$time,SR[3],SR[2],SR[1],SR[0]);
-        $strobe("TIME:%0t\t::\tPC: %b (%d)\tPC_E:%b",$time,PC,PC,PC_E);
-        $strobe("TIME:%0t\t::\tIR: %b (%d)\tIR_E:%b",$time,IR,IR,IR_E);
-        $strobe("TIME:%0t\t::\tDR: %b (%d)\tDR_E:%b\t[%h]",$time,DR,DR,DR_E,DR);
-        $strobe("TIME:%0t\t::\tDMem_print: %b (%d)\tPR_E:%b\t[%h]",$time,PR,PR,PR_E,PR);
-        $strobe("TIME:%0t\t::\tAcc: %b (%d)\tAcc_E:%b\t[%h]",$time,Acc,Acc,Acc_E,Acc);
-        $strobe();
+        if(currentState != 2'b00) begin
+            $strobe("--------------------------------------------");
+            $strobe("Program Counter:\t%b    (%d)",PC,PC);
+            $strobe("Instruction Register:\t%b",IR);
+            $strobe("Accumulator:\t\t%b    (%d)",Acc,Acc);
+            $strobe("");
+        end
     end 
+
+    always @(negedge PR_E) begin
+        $strobe("    ---------------------------------------");
+        $strobe("---<| PROCESSOR PRINT:  %b    (%d) |",PR,PR);
+        $strobe("    ---------------------------------------");
+    end
 endmodule
